@@ -1,11 +1,10 @@
-name: CI for Game2048
+name: CI / CD for game2048
 on: push
 env:
-  maven_packages_cache: "~/.m2/repository"
-  MAVEN_OPTS: "-Dmaven.repo.local=./$maven_packages_cache"
+  mvnPackageCache: "~/.m2/repository"
 jobs:
-  build: #job
-    runs-on: [ self-hosted, linux ]
+  build:
+    runs-on: [ self-hosted ]
     name: Build
     steps:
       - name: Checkout
@@ -18,10 +17,9 @@ jobs:
         with:
           name: Game2048Bin
           path: target/*
-
   test:
     needs: build
-    runs-on: [ self-hosted, linux ]
+    runs-on: [ self-hosted ]
     name: Test
     steps:
       - name: Checkout
@@ -29,10 +27,9 @@ jobs:
       - name: Maven Compile
         run: |
           mvn test
-
   package:
     needs: build
-    runs-on: [ self-hosted, linux ]
+    runs-on: [ self-hosted ]
     name: Package
     steps:
       - name: Checkout
@@ -45,10 +42,9 @@ jobs:
         with:
           name: Game2048Package
           path: target/*.war
-
   deploy_test:
     needs: package
-    runs-on: [self-hosted, linux]
+    runs-on: [ self-hosted ]
     name: Deploy-Test
     environment:
       name: test
