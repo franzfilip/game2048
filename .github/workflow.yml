@@ -1,0 +1,59 @@
+name: CI for Game2048
+on: push
+env:
+  maven_packages_cache: "~/.m2/repository"
+  MAVEN_OPTS: "-Dmaven.repo.local=./$maven_packages_cache"
+jobs:
+  build: #job
+    runs-on: [ self-hosted, linux ]
+    name: Build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Maven Compile
+        run: |
+          mvn compile
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Game2048Bin
+          path: target/*
+
+  test:
+    needs: build
+    runs-on: [ self-hosted, linux ]
+    name: Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Maven Compile
+        run: |
+          mvn test
+
+  package:
+    needs: build
+    runs-on: [ self-hosted, linux ]
+    name: Package
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Maven Package
+        run: |
+          mvn package
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Game2048Package
+          path: target/*.war
+
+  deploy_test:
+    needs: package
+    runs-on: [self-hosted, linux]
+    name: Deploy-Test
+    environment:
+      name: test
+      url: http://localhost:8081/game2048
+    steps:
+      - name: Deploy
+        run: |
+          cp -f target/*.war /usr/local/tomcat/webapps
